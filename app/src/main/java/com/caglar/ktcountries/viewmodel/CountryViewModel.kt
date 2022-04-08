@@ -1,10 +1,11 @@
 package com.caglar.ktcountries.viewmodel
 
+import android.app.Application
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.caglar.ktcountries.model.Country
 
-class CountryViewModel : ViewModel() {
+class CountryViewModel(application: Application) : BaseViewModel(application) {
     val countryLiveData = MutableLiveData<Country>()
 
     fun getDataFromRoom() {
