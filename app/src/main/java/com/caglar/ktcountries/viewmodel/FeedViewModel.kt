@@ -1,6 +1,7 @@
 package com.caglar.ktcountries.viewmodel
 
 import android.app.Application
+import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.caglar.ktcountries.model.Country
@@ -23,11 +24,11 @@ class FeedViewModel(application: Application) : BaseViewModel(application) {
     private val countryAPIService = CountryAPIService()
     private val disposable = CompositeDisposable()
     private var customPreferences = CustomSharedPreferences(getApplication())
-    private var refreshTime = 10 * 60 * 1000 * 1000L
+    private var refreshTime = 10 * 60 * 1000 * 1000 * 1000L
 
     fun refreshData() {
         val updateTime = customPreferences.getTime()
-        if (updateTime != null && updateTime != 0L && System.nanoTime() - updateTime < refreshTime) {
+        if (updateTime != null && updateTime != 0L && ((System.nanoTime() - updateTime) < refreshTime)) {
             getDataFromSQLite()
         }
         else {
@@ -36,7 +37,11 @@ class FeedViewModel(application: Application) : BaseViewModel(application) {
     }
 
     private fun getDataFromSQLite() {
-
+        launch {
+            val countries = CountryDatabase(getApplication()).countryDao().getAllCountries()
+            showCountries(countries)
+            Toast.makeText(getApplication(),"Countries from SQL",Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun getDataFromAPI() {
@@ -49,6 +54,7 @@ class FeedViewModel(application: Application) : BaseViewModel(application) {
                 .subscribeWith(object : DisposableSingleObserver<List<Country>>(){
                     override fun onSuccess(t: List<Country>) {
                         storeInSQLite(t)
+                        Toast.makeText(getApplication(),"Countries from API",Toast.LENGTH_LONG).show()
                     }
 
                     override fun onError(e: Throwable) {
