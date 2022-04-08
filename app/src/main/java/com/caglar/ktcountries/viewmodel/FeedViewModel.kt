@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.caglar.ktcountries.model.Country
 import com.caglar.ktcountries.service.CountryAPIService
 import com.caglar.ktcountries.service.CountryDatabase
+import com.caglar.ktcountries.util.CustomSharedPreferences
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
@@ -21,10 +22,21 @@ class FeedViewModel(application: Application) : BaseViewModel(application) {
     val countryLoading = MutableLiveData<Boolean>()
     private val countryAPIService = CountryAPIService()
     private val disposable = CompositeDisposable()
-
+    private var customPreferences = CustomSharedPreferences(getApplication())
+    private var refreshTime = 10 * 60 * 1000 * 1000L
 
     fun refreshData() {
-        getDataFromAPI()
+        val updateTime = customPreferences.getTime()
+        if (updateTime != null && updateTime != 0L && System.nanoTime() - updateTime < refreshTime) {
+            getDataFromSQLite()
+        }
+        else {
+            getDataFromAPI()
+        }
+    }
+
+    private fun getDataFromSQLite() {
+
     }
 
     private fun getDataFromAPI() {
@@ -66,6 +78,7 @@ class FeedViewModel(application: Application) : BaseViewModel(application) {
             }
             showCountries(list)
         }
+        customPreferences.saveTime(System.nanoTime())
     }
 
 }
